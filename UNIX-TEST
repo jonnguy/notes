@@ -1,0 +1,22 @@
+curl www.yahoo.com -o output.html
+curl -O www.yahoo.com/index.html
+curl -# -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt -o sample.txt # the -# adds progress bar
+curl -r 0-99 -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt# get first 100 bytes
+curl -r -500 -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt # get last 500 bytes
+echo "Hello World" | curl -T - -u yue:fuzicast ftp://ftphost/fuzicast/sample2.txt
+curl -T UNIX-1.14 -u yue:fuzicast ftp://ftphost/fuzicast/unix
+curl -T localfile1 servername/remotefile1 -T localfile2 servername/remotefile2
+curl -T UNIX-1.14 -u yue:fuzicast -a ftp://ftphost/fuzicast/unix # append to FTP file
+curl --ftp-create-dirs -T UNIX-1.14 -u yue:fuzicast ftp://ftphost/fuzicast/unix/test.txt
+curl --limit-rate 10240 -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt # limit number of bytes per second
+.curlrc # curl configuration file
+curl -u yue:fuzicast -z sample.txt ftp://ftphost/fuzicast/sample.txt # download remotefile only if it's newer than localfile
+curl -z "Jan 12 2012" -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt # download remote file only if it's newer than Jan 12 2012
+curl -B -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt # enforces ASCII transfer during FTP download 
+curl -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt --create-dirs -o sampledir/sample.txt# create directory if not exist
+curl --key id_rsa # use SSH key
+curl -u yue:fuzicast ftp://ftphost -Q 'RNFR /fuzicast/sample.txt' -Q 'RNTO /fuzicast/sampleyue.txt' # rename a remote file in FTP protocol
+curl -u yue:fuzicast ftp://ftphost -Q 'rename /fuzicast/sample.txt /fuzicast/sampleyue.txt' # rename in SFTP is different from FTP
+curl -R -u yue:fuzicast ftp://ftphost/fuzicast/sample.txt -o output.txt # reserve original file timestamp
+curl -l -u yue:fuzicast ftp://ftphost/fuzicast/ # list remote filenames
+curl -m 1800 -Y 3000 -y 60 servername/filename # speed must be greater than 3000 bytes per second for a minute and download process must be completed within 1800 seconds, otherwise the download will abort
