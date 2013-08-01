@@ -10,21 +10,14 @@ import re
 def parseLogs(files):
 	alllines = ""
 	for file in files:
-		f = open(file, 'rU')
-		for line in f:
-			match = re.search(r'(?P<get>(GET|POST).*404.*)|(?P<err>.*error.*)', line)
-			if match:
-				# print match.group()
-				if match.group('err'):
-					print "Err:", str(match.group('err'))
-				else:
-					print "GET/POST:", str(match.group('get'))
-				# print match.group('err')
-				# print match.start()
-				# print match.end()
-				alllines += match.group() + "\n"
-				# print match.group()
-		f.close()
+		if os.path.isfile(file):
+			f = open(file, 'rU')
+			for line in f:
+				match = re.search(r'((GET|POST).* 404 .*)|.*error.*', line)
+				if match:
+					alllines += match.group() + "\n"
+					# print match.group()
+			f.close()
 	count = alllines.count("\n")
 
 	print "Found", count, "instances."
@@ -41,34 +34,84 @@ def savelinestofile(lines):
 
 # Create a list of files in the directory, ignoring hidden files and directories 
 # and files with extensions
-def readFilesFromDir(dir):
+def readFilesFromDir(dir, recursively=False):
 	if not os.path.exists(dir):
 		return "The directory doesn't exist"
 	files = os.listdir(dir)
+	new_files = []
+
+
+	for dirpath, directories, files in os.walk(dir):
+		print str(dirpath) + " " + str(directories) + " " + str(files) + "\n"
+
+	if recursively:
+		for dirpath, dirs, files in os.walk(dir):
+			for file in files:
+				path = os.path.join(dirpath, file)
+				if not os.path.isdir(path) and file[0] != ".":
+					match = re.search(r"log", file)
+					# match = re.search(r"\.[a-zA-Z]+", file)
+					if match and "log" in match.group():
+						new_files.append(path)
 
 	# create a new list with non-directories and non-hidden
-	new_files = []
-	for file in files:
-		path = os.path.join(dir, file)
-		if not os.path.isdir(path) and file[0] != ".":
-			match = re.search(r"\.[a-zA-Z]+", file)
-			if not match or match.group() == ".log":
-				new_files.append(os.path.join(dir,file))
+	else:
+		for file in files:
+			path = os.path.join(dir, file)
+			if not os.path.isdir(path) and file[0] != ".":
+				# match = re.search(r"\.[a-zA-Z]+", file)
+				match = re.search(r"log", file)
+				if match and "log" in match.group():
+					new_files.append(path)
+
+
+	# print "Other directories to read:"
+	# for direc in moredirs:
+	# 	print "  " + direc
+
+	print "Reading the following files: "
+	for file in new_files:
+		print "  " + os.path.abspath(file)
+
 
 	return new_files
 
+def usage():
+	print """ Usage: %s [options] [directory to read]
+		-h, --help			display help
+		-v, --verbose		display verbose 
+		-r 					recrusively go through directories
+	""" % sys.argv[0]
+
+	sys.exit()
+
 def main():
-	args = sys.argv
+	import getopt
+	global VERBOSE_TAG
+	recurs = False
+
+	options, args = getopt.getopt(sys.argv[1:], "rhv", ["help", "verbose"])
+
+	for option, arg in options:
+		if option in ("-h", "--help"):
+			usage()
+		elif option in ("-v", "--verbose"):
+			VERBOSE_TAG = True
+		elif option == "-r":
+			recurs = True
+
+	dir = sys.argv[-1]
+	print dir
 
 	# If there are 0 arguments, return
-	if len(args) != 2:
-		print 'usage: ./grablogs.py directory_to_logs'
-		sys.exit(1)
+	# if len(args) != 2:
+	# 	print 'usage: ./grablogs.py [-r] [--help, --verbose] directory_to_logs'
+	# 	sys.exit(1)
 
-	dir = args[1]
+	# dir = args[1]
 
-	files = readFilesFromDir(dir)
-	print readFilesFromDir(dir)
+	files = readFilesFromDir(dir, recurs)
+	# print readFilesFromDir(dir)
 
 	allmatches = parseLogs(files)
 	savelinestofile(allmatches)

@@ -85,6 +85,8 @@ module os
 	os.path.getatime(path) => returns file last access time
 	os.path.getctime(path) => returns system's ctime (unix = last change)
 	os.path.getsize(path) => return size of file in bytes
+	os.path.dirname(path) => returns the directory name of the path
+	os.path.basename(path) => returns the base name of the path
 
 module shutil
 	(source-path, dest-path) 
@@ -101,6 +103,8 @@ module calendar
 
 module time
 	time.ctime()
+
+module urllib
 
 other functions
 	filter(comparison, list) => returns a list filtered by things that equal the comparison 
