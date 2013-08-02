@@ -8,8 +8,10 @@ VERBOSE_TAG = False
 filter_by = ['error', 'fail', 'failure']
 
 """
-This program grabs the log files and looks for lines with "error" in it with a date.
-	We'll use matplotlib to display a histogram of errors based on the date.
+This program grabs the log files and looks for lines by a certain filter 
+	(default is 'error', 'fail', 'failure').
+	
+	We'll use matplotlib to save a histogram of errors based on the date.
 
 """
 
