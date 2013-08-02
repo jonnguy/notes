@@ -2,9 +2,10 @@
 
 import sys, os, re, datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as matplotdate
+import matplotlib.dates as mdates
 
 VERBOSE_TAG = False
+filter_by = ['error', 'fail', 'failure']
 
 """
 This program grabs the log files and looks for lines with "error" in it with a date.
@@ -109,8 +110,8 @@ def getAllFiles(dirs, opts):
 
 # This will parse the files and return a dictionary as: dict[date][filter] = count
 def filter_and_count (filepaths, opts):
-	filter_by = ['error', 'fail', 'failure']
 	date_dict = {}
+	global filter_by
 
 	# my regex for date in the format, where x are letters and n are numbers:
 	# 	nn/nn/nn, n/nn/nn,
@@ -119,7 +120,7 @@ def filter_and_count (filepaths, opts):
 	# 	some don't even have the year..
 	filter_expression = "|".join(filter_by)
 
-	regexstr = r'(?P<date>(\d?\d[-\/ ]{1}(\d?\d|[a-zA-Z]{3,4})[-\/ ]{1}\d?\d{2,4})|([a-zA-Z]{3,4} +\d?\d)).*(?i)(?P<filter>'+filter_expression+').*'
+	regexstr = r'(?P<date>(\d?\d[-\/ ]{1}(\d?\d|[A-Z]{1}[a-zA-Z]{2,3})[-\/ ]{1}\d?\d{2,3})|([A-Z]{1}[a-zA-Z]{2,3} +\d?\d)).*(?i)(?P<filter>'+filter_expression+').*'
 	# print "Regexstr:", regexstr
 	reg = re.compile(regexstr)
 
@@ -142,7 +143,7 @@ def filter_and_count (filepaths, opts):
 			for line in read:
 				match = reg.search(line) # search and ignore case
 				if match:
-					# print "    Found: ", match.group()
+					# print "    Found:", match.group('date')
 					date = match.group('date')
 					filter = match.group('filter').lower()
 
@@ -198,14 +199,43 @@ def filter_and_count (filepaths, opts):
 	return date_dict
 
 # creates a graph and saves
-def plot_and_save(dict, opts):
-	return 
-	dates = sorted(dict.keys())
+def plot_and_save(dates, opts):
+	matplotcolors = "bgrcmykw" #these are the colors taht matplot supports
 
-	print dates
+	now = datetime.datetime.now()
+	now = now.strftime("%m.%d %I.%M")
+	# dates = sorted(dict.keys())
 
-	# for date in dates:
-	print matplotdate.strpdate2num(dates)
+	x = [datetime.datetime.strptime(d, '%m-%d-%y').date() for d in dates]
+	y = []
+
+	# for each filter, create a bar chart for it (type of graph can change...)
+	if VERBOSE_TAG:
+		print "Creating plot graph"
+	color_choice = 0
+	for filter in filter_by:
+		for date in dates.keys():
+			y.append(dates[date][filter])
+		ax = plt.subplot(111)
+		ax.plot(x,y, matplotcolors[color_choice]+'o', label=filter)
+		# ax.bar(x,y, width=2, color=matplotcolors[color_choice], label=filter)
+		ax.legend(loc=0)
+		locs, labels = plt.xticks() 
+		plt.setp(labels, rotation=45)
+		# ax.xaxis_date()
+		color_choice += 1
+		del(y)
+		y = []
+
+	# can uncomment this to show instead of save
+	# plt.show()
+	savename = "Graph "+now+".png"
+	if VERBOSE_TAG:
+		print "  Created graph, saving to file", savename
+	plt.savefig(savename, dpi=150, edgecolor='k', bbox_inches='tight')
+	if VERBOSE_TAG:
+		print "Saved to", savename
+
 	return
 
 def main():
@@ -219,7 +249,7 @@ def main():
 	# gets a dictionary in the form date_dict[date][filter] = count
 	date_dict = filter_and_count(files_to_read, options)
 
-	print date_dict
+	# print date_dict
 
 	plot_and_save(date_dict, options)
 
