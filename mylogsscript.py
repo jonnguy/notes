@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-import sys, os, re
-import datetime
+import sys, os, re, datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as matplotdate
 
 VERBOSE_TAG = False
 
@@ -119,7 +120,7 @@ def filter_and_count (filepaths, opts):
 	filter_expression = "|".join(filter_by)
 
 	regexstr = r'(?P<date>(\d?\d[-\/ ]{1}(\d?\d|[a-zA-Z]{3,4})[-\/ ]{1}\d?\d{2,4})|([a-zA-Z]{3,4} +\d?\d)).*(?i)(?P<filter>'+filter_expression+').*'
-	print "Regexstr:", regexstr
+	# print "Regexstr:", regexstr
 	reg = re.compile(regexstr)
 
 	# Use user's filter function
@@ -151,13 +152,17 @@ def filter_and_count (filepaths, opts):
 					current_year = str(datetime.datetime.now().year)[-2:] # last 2 digits
 					format = '%y-%m-%d' if date.startswith(current_year) else '%m-%d-%y'
 
-					# now for the funky MMMM-dd ones..
+					# now for the funky MMMM-dd ones.., assume it's 2013 unless it's after current day
 					if date[:3].isalpha():
 						date += "-"+current_year
 						format = "%b-%d-%y"
+						dateobj = datetime.datetime.strptime(date, format)
+						if dateobj > datetime.datetime.now():
+							dateobj -= datetime.timedelta(days=365)
+					else:
+						# makes all the dates uniform in the form mm-dd-yy
+						dateobj = datetime.datetime.strptime(date, format)
 
-					# makes all the dates uniform in the form mm-dd-yy
-					dateobj = datetime.datetime.strptime(date, format)
 					new_date = dateobj.strftime("%m-%d-%y")
 
 					# print "\t filter type:", filter
@@ -179,13 +184,29 @@ def filter_and_count (filepaths, opts):
 			print "  Found", single_count, "lines in", file
 		total_counts += single_count
 
+		# sets the rest of the filters for each date to 0 if it didn't find one for that day
+		for date in date_dict.keys():
+			for type in filter_by:
+				if not date_dict[date].get(type):
+					date_dict[date][type] = 0
+
 	if VERBOSE_TAG:
-		print "keys:", len(date_dict.keys())
 		print "** Found", total_counts, "lines in all files **"
 
 	# print date_dict
 
 	return date_dict
+
+# creates a graph and saves
+def plot_and_save(dict, opts):
+	return 
+	dates = sorted(dict.keys())
+
+	print dates
+
+	# for date in dates:
+	print matplotdate.strpdate2num(dates)
+	return
 
 def main():
 	# Get the arguments
@@ -197,6 +218,10 @@ def main():
 
 	# gets a dictionary in the form date_dict[date][filter] = count
 	date_dict = filter_and_count(files_to_read, options)
+
+	print date_dict
+
+	plot_and_save(date_dict, options)
 
 if __name__ == "__main__":
 	main()
