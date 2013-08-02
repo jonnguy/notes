@@ -25,7 +25,7 @@ def usage(error = None):
    -r, -R 		recursively go through directory
    -a 			read all files, not just "log" (not including hidden)
    -A 			read all files, including those that begin with '.' (overwrites 'a')
-   -f filter 		filter by keyword 'filter', default is 'error'
+   -f filter 		filter by keyword 'filter', default is 'error' (not implemented)
 	"""
 
 # Returns (options, dir)
